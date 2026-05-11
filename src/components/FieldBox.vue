@@ -1,9 +1,9 @@
 <template>
-  <div class="field-box" :style="{ width }">
+  <div class="field-box" :style="{ width: width }">
     <span class="field-label">{{ label }}</span>
-    <div class="field-value-wrap">
-      <span class="field-value" :class="{ 'field-value--mono': mono }">
-        {{ value || '—' }}
+    <div class="field-value-wrap" :title="value">
+      <span class="field-value" :class="{ 'font-mono': mono }">
+        {{ value }}
       </span>
     </div>
   </div>
@@ -16,6 +16,7 @@ export default {
     label: { type: String, required: true },
     value: { type: String, default: '' },
     width: { type: String, default: 'auto' },
+    // height: { type: String, default: 'auto' },
     mono: { type: Boolean, default: false }
   }
 }
@@ -30,12 +31,12 @@ export default {
 }
 
 .field-label {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-text-quaternary);
-  line-height: 1;
+  line-height: 1.5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -60,6 +61,7 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1;
+  display: block;
 }
 
 .field-value--mono {

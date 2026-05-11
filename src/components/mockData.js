@@ -37,14 +37,14 @@ const BASE = {
 export const initialConfigs = [
   {
     ...BASE, id: 1, projectName: 'QA', lomNr: 'Nr 1-10', description: '1-10_80DEG',
-    minV: 0, maxV: 11, machine: 'Machine-1', expectedFinish: '13:58:56',
+    minV: 0, maxV: 11, machine: 'MCEPE11567', expectedFinish: '13:58:56',
     ipAddress: '192.168.1.101', equipmentType: 'DAQ9600',
     channels: Array(10).fill(true),
     data: generateData(120, 0.27, 0.32),
   },
   {
     ...BASE, id: 2, projectName: 'QA', lomNr: 'Nr 11-20', description: '11-20_80DEG',
-    minV: 0, maxV: 11, machine: 'Machine-1', expectedFinish: '13:57:02',
+    minV: 0, maxV: 11, machine: 'MCEPE11567', expectedFinish: '13:57:02',
     ipAddress: '192.168.1.102', equipmentType: 'DAQ9600',
     channels: Array(10).fill(true),
     data: generateData(120, 0.27, 0.32),

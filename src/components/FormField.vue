@@ -16,7 +16,9 @@ export default {
 </script>
 
 <style>
-.form-field {}
+.form-field {
+  
+}
 
 .form-label {
   display: block;

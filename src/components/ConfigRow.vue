@@ -1,29 +1,30 @@
 <template>
   <div class="config-row" :class="{ 'config-row--inactive': !config.active }">
-    <!-- ── Row index ── -->
     <div class="row-id">
       <span class="row-id-text">{{ config.id }}</span>
     </div>
 
-    <!-- ── CARD 1 · Settings ── -->
     <div class="card card--settings">
-      <button class="settings-btn" @click="modal = 'settings'">
-        <SettingsIcon />
-        <span>Settings</span>
-      </button>
+      <div class="settings-group">
+        <button class="delete-trigger-box" @click.stop="askDelete" title="Delete Row">
+          <span class="delete-icon"></span>
+        </button>
+
+        <button class="settings-btn" @click="modal = 'settings'">
+          <SettingsIcon />
+          <span>Settings</span>
+        </button>
+      </div>
     </div>
 
-    <!-- ── CARD 2 · Information ── -->
     <div class="card card--info">
-      <div class="main-content-row"> <div class="fields-row">
+      <div class="main-content-row">
+        <div class="fields-row">
           <div class="field-box">
             <span class="field-label">Status</span>
             <div class="led-wrap">
-              <span
-                class="led"
-                :class="config.active ? 'led--green' : 'led--red'"
-                :title="config.active ? 'Active' : 'Inactive'"
-              />
+              <span class="led" :class="config.active ? 'led--green' : 'led--red'"
+                :title="config.active ? 'Active' : 'Inactive'" />
             </div>
           </div>
 
@@ -51,7 +52,6 @@
       </div>
     </div>
 
-    <!-- ── CARD 3 · Data & Graph ── -->
     <div class="card card--actions">
       <ActionBtn label="Data" color="blue" @click="modal = 'data'">
         <DatabaseIcon />
@@ -62,23 +62,9 @@
     </div>
   </div>
 
-  <!-- Modals -->
-  <SettingsModal
-    v-if="modal === 'settings'"
-    :config="config"
-    @close="modal = null"
-    @save="handleSave"
-  />
-  <DataModal
-    v-if="modal === 'data'"
-    :config="config"
-    @close="modal = null"
-  />
-  <GraphModal
-    v-if="modal === 'graph'"
-    :config="config"
-    @close="modal = null"
-  />
+  <SettingsModal v-if="modal === 'settings'" :config="config" @close="modal = null" @save="handleSave" />
+  <DataModal v-if="modal === 'data'" :config="config" @close="modal = null" />
+  <GraphModal v-if="modal === 'graph'" :config="config" @close="modal = null" />
 </template>
 
 <script>
@@ -89,6 +75,7 @@ import SettingsModal from './SettingsModal.vue'
 import DataModal from './DataModal.vue'
 import GraphModal from './GraphModal.vue'
 
+// Icons
 const SettingsIcon = {
   template: `<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -105,18 +92,28 @@ const BarChartIcon = {
     <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
   </svg>`
 }
+// const TrashIcon = {
+//   template: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+//     <polyline points="3 6 5 6 21 6"></polyline>
+//     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+//     <line x1="10" y1="11" x2="10" y2="17"></line>
+//     <line x1="14" y1="11" x2="14" y2="17"></line>
+//   </svg>`
+// }
 
 export default {
   name: 'ConfigRow',
-  components: { FieldBox, ActionBtn, SettingsModal, DataModal, GraphModal, SettingsIcon, DatabaseIcon, BarChartIcon },
+  components: {
+    FieldBox, ActionBtn, SettingsModal, DataModal, GraphModal,
+    SettingsIcon, DatabaseIcon, BarChartIcon
+  },
   props: {
     config: { type: Object, required: true }
   },
-  emits: ['update'],
+  emits: ['update', 'delete-request'],
 
   setup(props, { emit }) {
     const modal = ref(null)
-
     const activeChannels = computed(() => props.config.channels.filter(Boolean).length)
 
     function handleSave(updated) {
@@ -124,7 +121,11 @@ export default {
       modal.value = null
     }
 
-    return { modal, activeChannels, handleSave }
+    function askDelete() {
+      emit('delete-request', props.config.id);
+    }
+
+    return { modal, activeChannels, handleSave, askDelete }
   }
 }
 </script>
@@ -133,11 +134,13 @@ export default {
 .config-row {
   display: flex;
   width: 100%;
-  gap: 0; /* Kita pakai border untuk pemisah */
+  gap: 0;
+  /* Kita pakai border untuk pemisah */
   background: white;
   border: 4px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden; /* Agar card di dalam tidak keluar dari border-radius */
+  overflow: hidden;
+  /* Agar card di dalam tidak keluar dari border-radius */
   margin-bottom: 12px;
 }
 
@@ -156,15 +159,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 45px;
+  width: 35px;
   flex-shrink: 0;
   background: #F2F2F7;
   border-right: 2px solid var(--color-border);
 }
 
 .row-id-text {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 800;
   color: var(--color-text-quaternary);
 }
 
@@ -179,7 +182,7 @@ export default {
   padding: 16px;
   border-right: 2px solid var(--color-border);
   flex-shrink: 0;
-  width: 110px;
+  width: 130px;
 }
 
 .card--info {
@@ -188,8 +191,7 @@ export default {
   border-right: 2px solid var(--color-border);
   min-width: 0;
   display: flex;
-  align-items: center; /* Pusatkan secara vertikal */
-  /* justify-content: flex-start; */
+  align-items: center;
   overflow: hidden;
 }
 
@@ -198,22 +200,21 @@ export default {
   gap: 8px;
   padding: 16px 20px;
   flex-shrink: 0;
-  width: 120px;
+  width: 110px;
 }
 
 .card--view {
   width: 124px;
-  flex-shrink: 0; /* Melarang kolom Data/Graph mengecil */
+  flex-shrink: 0;
   display: flex;
   gap: 6px;
   justify-content: center;
 }
 
-/* Wrapper baru untuk menyejajarkan Fields dan Channels */
 .main-content-row {
   display: flex;
-  align-items: flex-end; /* Menjaga label di atas sejajar */
-  gap: 24px; /* Jarak antara kolom terakhir fields dengan baris channels */
+  align-items: flex-end;
+  gap: 24px;
   justify-content: flex-start;
   width: 100%;
 }
@@ -233,8 +234,56 @@ export default {
   font-family: var(--font-sans);
 }
 
-.settings-btn:hover { background: #3A3A3C; }
-.settings-btn:active { background: #636366; }
+.settings-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.delete-trigger-box {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #FF3B30;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  box-shadow: 0 2px 4px rgba(255, 59, 48, 0.2);
+  transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.delete-icon {
+  width: 10px;
+  height: 4px;
+  background: white;
+  /* border-radius: 1px; */
+}
+
+.delete-trigger-box:hover {
+  box-shadow: 0 0 12px rgba(255, 59, 48, 0.5), 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.delete-trigger-box:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 2px rgba(255, 59, 48, 0.3);
+}
+
+.delete-trigger-box:active {
+  transform: scale(0.95);
+}
+
+.settings-btn:hover {
+  background: #3A3A3C;
+}
+
+.settings-btn:active {
+  background: #636366;
+}
 
 .settings-btn span {
   font-size: 10px;
@@ -247,20 +296,19 @@ export default {
   display: flex;
   align-items: flex-end;
   gap: 6px;
-  flex-shrink: 1; /* Mencegah fields menyusut */
+  flex-shrink: 1;
   flex-wrap: nowrap;
 }
 
 .channels-row-inline {
   display: flex;
-  align-items: flex-end; /* Sejajarkan dengan bagian bawah field-box */
+  align-items: flex-end;
   gap: 8px;
-  padding-bottom: 2px; /* Penyesuaian halus agar sejajar dengan input box */
+  padding-bottom: 2px;
   flex-shrink: 0;
   margin-left: auto;
 }
 
-/* Status LED */
 .led-wrap {
   display: flex;
   align-items: center;
@@ -290,7 +338,6 @@ export default {
   height: 16px;
 }
 
-/* Channels row */
 .channels-row {
   display: flex;
   align-items: center;
@@ -305,18 +352,17 @@ export default {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--color-text-quaternary);
-  margin-bottom: 8px; /* Sejajarkan posisi text label */
+  margin-bottom: 8px;
 }
 
 .channels-leds {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--color-surface); /* Opsional: beri background tipis agar terlihat seperti grup */
+  background: var(--color-surface);
   padding: 4px 12px;
-  /* border-radius: 6px; */
   border: 1px solid var(--color-border-light);
-  height: 32px; /* Samakan tinggi dengan field-value-wrap di FieldBox */
+  height: 32px;
 }
 
 .channel-item {

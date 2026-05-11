@@ -1,9 +1,7 @@
 <template>
   <div class="app-wrapper">
-    <!-- ── Header ── -->
     <header class="app-header">
       <div class="header-inner">
-        <!-- Brand -->
         <div class="brand">
           <div class="brand-icon">
             <ZapIcon />
@@ -13,7 +11,6 @@
             <p class="brand-sub">Wasserlagerung · Industrial DAQ</p>
           </div>
         </div>
-        <!-- Stats pill -->
         <div class="header-stats">
           <span class="pill">
             <span class="pill-dot" :class="activeCount > 0 ? 'dot-active' : 'dot-inactive'" />
@@ -23,7 +20,6 @@
       </div>
     </header>
 
-    <!-- ── Column headers ── -->
     <div class="col-headers">
       <span class="col-header col-id">#</span>
       <span class="col-header col-action">Action</span>
@@ -31,16 +27,16 @@
       <span class="col-header col-view">View</span>
     </div>
 
-    <!-- ── List ── -->
     <main class="config-list">
       <div class="list-inner">
-        <ConfigRow
-          v-for="config in configs"
-          :key="config.id"
-          :config="config"
+        <ConfigRow 
+          v-for="config in configs" 
+          :key="config.id" 
+          :config="config" 
           @update="handleUpdate"
+          @delete-request="prepareDelete" 
         />
-        <!-- Add New Configuration -->
+        
         <button class="add-btn" @click="handleAdd">
           <span class="add-icon-wrap">
             <PlusIcon />
@@ -49,6 +45,12 @@
         </button>
       </div>
     </main>
+
+    <DeleteModal 
+      v-if="configToDelete" 
+      @close="configToDelete = null" 
+      @confirm="finalizeDelete" 
+    />
   </div>
 </template>
 
@@ -56,8 +58,8 @@
 import { ref, computed } from 'vue'
 import { initialConfigs, createEmptyConfig } from './components/mockData'
 import ConfigRow from './components/ConfigRow.vue'
+import DeleteModal from './components/DeleteModal.vue'
 
-// Inline SVG icon components
 const ZapIcon = {
   template: `<svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
@@ -72,11 +74,13 @@ const PlusIcon = {
 
 export default {
   name: 'App',
-  components: { ConfigRow, ZapIcon, PlusIcon },
+  components: { ConfigRow, ZapIcon, PlusIcon, DeleteModal },
 
   setup() {
+    // Data Management
     const configs = ref(initialConfigs.map(c => ({ ...c, channels: [...c.channels], data: [...c.data] })))
-
+    const configToDelete = ref(null);
+    
     const activeCount = computed(() => configs.value.filter(c => c.active).length)
 
     function handleUpdate(updated) {
@@ -89,7 +93,27 @@ export default {
       configs.value.push(createEmptyConfig(maxId + 1))
     }
 
-    return { configs, activeCount, handleUpdate, handleAdd }
+    // Modal & Delete Logic
+    function prepareDelete(id) {
+      configToDelete.value = id
+    }
+
+    function finalizeDelete() {
+      if (configToDelete.value !== null) {
+        configs.value = configs.value.filter(c => c.id !== configToDelete.value);
+        configToDelete.value = null; 
+      }
+    }
+
+    return { 
+      configs, 
+      activeCount, 
+      configToDelete, // Pastikan ini di-return agar v-if terbaca
+      handleUpdate, 
+      handleAdd, 
+      prepareDelete, 
+      finalizeDelete 
+    }
   }
 }
 </script>
@@ -158,9 +182,9 @@ export default {
   gap: 6px;
   padding: 4px 12px;
   border-radius: var(--radius-full);
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   font-size: 11px;
-  color: rgba(255,255,255,0.8);
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
 }
 
@@ -169,8 +193,14 @@ export default {
   height: 6px;
   border-radius: 50%;
 }
-.dot-active { background: var(--color-green); }
-.dot-inactive { background: #636366; }
+
+.dot-active {
+  background: var(--color-green);
+}
+
+.dot-inactive {
+  background: #636366;
+}
 
 /* ── Column headers ── */
 .col-headers {
@@ -188,10 +218,29 @@ export default {
   color: var(--color-text-quaternary);
 }
 
-.col-id    { width: 32px; text-align: center; flex-shrink: 0; }
-.col-action { width: 94px; text-align: center; flex-shrink: 0; margin-left: 4px; }
-.col-info  { flex: 1; margin-left: 16px; }
-.col-view  { width: 124px; text-align: center; flex-shrink: 0; }
+.col-id {
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.col-action {
+  width: 94px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.col-info {
+  flex: 1;
+  margin-left: 16px;
+}
+
+.col-view {
+  width: 124px;
+  text-align: center;
+  flex-shrink: 0;
+}
 
 /* ── Main list ── */
 .config-list {

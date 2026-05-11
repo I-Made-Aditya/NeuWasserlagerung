@@ -22,8 +22,8 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 10px;
-  border-radius: var(--radius-md);
+  padding: 8px;
+  border-radius: 8px var(--radius-md);
   color: white;
   transition: background var(--transition-fast), transform var(--transition-fast);
   font-family: var(--font-sans);
@@ -35,7 +35,7 @@ export default {
 }
 
 .action-btn span:last-child {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
 }

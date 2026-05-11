@@ -85,9 +85,9 @@
             <div class="form-grid form-grid--2">
               <FormField label="Machine">
                 <select class="form-input" v-model="form.machine">
-                  <option>Machine-1</option>
-                  <option>Machine-2</option>
-                  <option>Machine-3</option>
+                  <option>MCEPE11567</option>
+                  <option>MCEPE11566</option>
+                  <option>MCEPE11561</option>
                 </select>
               </FormField>
               <FormField label="Equipment Type">
